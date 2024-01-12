@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+
+  es:
+    image: elasticsearch:8.8.0
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - es_vol:/usr/share/elasticsearch/data
+
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_vol:/var/lib/mysql
+
+  python_test:
+    build: ./api/
+    command: sh -c "sleep 10s ; python flask_api.py"
+    ports:
+      - 56001:5000
+    environment:
+      - ES_IP=es
+      - DB_IP=db
+    depends_on:
+      - es
+      - db
+
+volumes:
+  es_vol:
+    external: true
+  mysql_vol:
+    external: true
